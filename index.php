@@ -8,6 +8,30 @@
 	$options = "";
 	$tb_list = array();
 	
+	function editForm($tb_name, $tb_column) {
+		return <<<HTML
+<form action="edit.php" method="get">
+	<select name="type">
+		<option value="int">int</option>
+		<option value="varchar">varchar</option>
+		<option value="text">text</option>
+	</select>
+	<input type="hidden" name="tb_name" value="$tb_name">
+	<input type="hidden" name="tb_column" value="$tb_column">
+	<button>OK</button>
+</form>	
+HTML;
+		
+	}
+	
+	function delLink($tb_name, $tb_column) {
+		return <<<HTML
+			<a href="del.php?tb_name=$tb_name&tb_column=$tb_column">Удалить</a>
+HTML;
+		
+	}
+	
+	
 	foreach ($pdo->query($sql) as $row) {
 		$tb_list[] = $row[$index];
 	}
@@ -16,14 +40,14 @@
 		$options .= "<option value=\"".$tb_name."\">".$tb_name."</option>";
 	}	
 	
-	if (isset($_GET['tb_info']) && in_array($_GET['tb_info'], $tb_list)) {
-		$tb_name = $_GET['tb_info'];
+	if (isset($_GET['tb_name']) && in_array($_GET['tb_name'], $tb_list)) {
+		$tb_name = $_GET['tb_name'];
 		$sql = "DESCRIBE $tb_name";
 		$rows = "";
 		foreach ($pdo->query($sql) as $row) {
-			$rows .= "<tr><td>".$row['Field']."</td><td>".$row['Type']."</td></tr>" ;
+			$rows .= "<tr><td>".$row['Field']."</td><td>".$row['Type']."</td><td>".editForm($_GET['tb_name'], $row['Field'])."</td><td>".delLink($_GET['tb_name'], $row['Field'])."</td></tr>";
 		}
-		$table = "<h2>Табличка {$_GET['tb_info']}</h2><table><th>Поле</th><th>Тип</th>$rows</table>";
+		$table = "<h2>Табличка {$_GET['tb_name']}</h2><table><th>Поле</th><th>Тип</th><th>Изменить тип</th><th>Удалить</th>$rows</table>";
 	} else {
 		$table = "";
 	}
@@ -40,7 +64,7 @@
 <body> 
 	<h1>Получить инфо о таблице БД</h1>		
 	<form action="" method="get">
-		<select name="tb_info">
+		<select name="tb_name">
 			<?= $options ?>
 		</select>	
 		<button>OK</button>
